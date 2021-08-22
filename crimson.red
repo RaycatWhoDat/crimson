@@ -7,170 +7,191 @@ Red [
     }
     File: %crimson.red
     Tabs: 4
-    Version: 0.0.3
+    Version: 0.0.4
 ]
 
-keep-occurrences: function [
-    "Base function for keep-occurrences behavior."
-    iterable [block! string!] "The iterable to parse over."
-    item [block! typeset! datatype! string!] "The item to find in the iterable."
-    return: [block!]
-] [
-    if (string? iterable) and not (string? item) [
-        do make error! "KEEP-OCCURRENCES can only accept string! when parsing over string!"
-    ]
-    parse iterable [collect [some [to item keep item to item]]]
-]
-
-~: make op! function [
-    "Returns all occurrences of ITEM in ITERABLE."
-    iterable [block! string!] "The iterable to parse over."
-    item [block! typeset! datatype! string!] "The item to find in the iterable."
-    return: [block!]
-] [
-    keep-occurrences iterable item
-]
-
-assert: function [
-    "Throws an exception if a condition is false."
-    :test-condition [any-type!] "The conditional in question."
-    message [string!] "The message to display when throwing the exception."
-] [
-    if not do :test-condition [
-        both-sides: test-condition ~ any-type!
-        print compose ["Expected:" both-sides]
-        print compose ["Actual:" (first both-sides)]
-        do make error! message
-    ]
-]
-
-zip: function [
-    "Base function for zipping behavior."
-    first-block [block!] "The first block to zip."
-    second-block [block!] "The second block to zip."
-    /flat "Flattens items when present. NOTE: This will not compose nicely."
-    return: [block!]
-] [
-    collect [
-        operation-mode: either flat [
-            [keep]
-        ] [
-            [keep/only]
-        ]
-
-        forall first-block [
-            do compose [(operation-mode) append to block! first-block/1 pick second-block index? first-block]
-        ]
-    ]
-]
-
-Z: make op! function [
-    "Returns a series of blocks with items corresponding with both iterables."
-    first-block [block!] "The first block to zip."
-    second-block [block!] "The second block to zip."
-    return: [block!]
-] [
-    zip first-block second-block
-]
-
-Z!: make op! function [
-    "Returns a flattened block with items corresponding with both iterables. NOTE: This will not compose nicely like Z does."
-    first-block [block!] "The first block to zip."
-    second-block [block!] "The second block to zip."
-    return: [block!]
-] [
-    zip/flat first-block second-block
-]
-
-flatten: function [
-    "Returns a flattened block of items."
-    series [block!] "The block of items to flatten."
-    return: [block!]
-    /deep "Flattens each nested block when present."
-] [
-    either deep [
-        flattened-series: make block! length? series
-        nested-block: [
-            into [some nested-block]
-            | set value skip (append flattened-series value)
-        ]
-        parse series [some nested-block]
-        flattened-series
+crimson: context [
+    keep-occurrences: function [
+        "Base function for keep-occurrences behavior."
+        iterable [block! string!] "The iterable to parse over."
+        item [block! typeset! datatype! string!] "The item to find in the iterable."
+        return: [block!]
     ] [
-        flattened-series: make block! length? series
-        head any [
-            foreach value series [
-                insert tail flattened-series value
+        if (string? iterable) and not (string? item) [
+            do make error! "KEEP-OCCURRENCES can only accept string! when parsing over string!"
+        ]
+        parse iterable [collect [some [to item keep item to item]]]
+    ]
+    
+    ~: make op! function [
+        "Returns all occurrences of ITEM in ITERABLE."
+        iterable [block! string!] "The iterable to parse over."
+        item [block! typeset! datatype! string!] "The item to find in the iterable."
+        return: [block!]
+    ] [
+        keep-occurrences iterable item
+    ]
+    
+    assert: function [
+        "Throws an exception if a condition is false."
+        :test-condition [any-type!] "The conditional in question."
+        message [string!] "The message to display when throwing the exception."
+    ] [
+        if not do :test-condition [
+            both-sides: test-condition ~ any-type!
+            print compose ["Expected:" both-sides]
+            print compose ["Actual:" (first both-sides)]
+            do make error! message
+        ]
+    ]
+    
+    zip: function [
+        "Base function for zipping behavior."
+        first-block [block!] "The first block to zip."
+        second-block [block!] "The second block to zip."
+        /flat "Flattens items when present. NOTE: This will not compose nicely."
+        return: [block!]
+    ] [
+        collect [
+            operation-mode: either flat [[keep]] [[keep/only]]
+            
+            forall first-block [
+                do compose [(operation-mode) append to block! first-block/1 pick second-block index? first-block]
             ]
+        ]
+    ]
+    
+    Z: make op! function [
+        "Returns a series of blocks with items corresponding with both iterables."
+        first-block [block!] "The first block to zip."
+        second-block [block!] "The second block to zip."
+        return: [block!]
+    ] [
+        zip first-block second-block
+    ]
+    
+    Z!: make op! function [
+        "Returns a flattened block with items corresponding with both iterables. NOTE: This will not compose nicely like Z does."
+        first-block [block!] "The first block to zip."
+        second-block [block!] "The second block to zip."
+        return: [block!]
+    ] [
+        zip/flat first-block second-block
+    ]
+    
+    flatten: function [
+        "Returns a flattened block of items."
+        series [block!] "The block of items to flatten."
+        return: [block!]
+        /deep "Flattens each nested block when present."
+    ] [
+        either deep [
+            flattened-series: make block! length? series
+            nested-block: [
+                into [some nested-block]
+                | set value skip (append flattened-series value)
+            ]
+            parse series [some nested-block]
             flattened-series
-        ]
-    ]
-]
-
-..: make op! function [
-    "Returns all natural numbers between and including START and END."
-    start [integer! float!] "The first number in the range."
-    end [integer! float!] "The last number in the range."
-    return: [block!]
-] [
-	if start = end [return []]
-	is-start-smaller: start < end
-	total: either is-start-smaller [end - start + 1] [start - end + 1]
-	collect [
-		repeat index total [
-			keep start + either is-start-smaller [index - 1] [-1 * (index - 1)]
-		]
-	]
-]
-
-R: function [
-    "Returns all natural numbers between and including 1 and including END."
-    end [number!] "The last number in the range."
-    return: [block!]
-] [
-    either end > 1 [
-        1 .. end
-    ] [
-        []
-    ]
-]
-
-chunk: function [
-    "Returns a block of blocks, in groups of SIZE."
-    iterable [block! string!] "The iterable to parse over."
-    size [integer!] "The size of each block."
-    return: [block!]
-] [
-    assert [size > 0] "SIZE cannot be less than 1."
-    collect [
-        items: []
-        forall iterable [
-            append items iterable/1
-            is-last-item: (length? iterable) = 1
-            is-items-full: (length? items) >= size
-            if is-last-item or is-items-full [
-                keep/only copy items clear items
+        ] [
+            flattened-series: make block! length? series
+            head any [
+                foreach value series [
+                    insert tail flattened-series value
+                ]
+                flattened-series
             ]
-            if is-last-item [break]
+        ]
+    ]
+    
+    ..: make op! function [
+        "Returns all natural numbers between and including START and END."
+        start [integer! float!] "The first number in the range."
+        end [integer! float!] "The last number in the range."
+        return: [block!]
+    ] [
+        if start = end [return []]
+        is-start-smaller: start < end
+        total: either is-start-smaller [end - start + 1] [start - end + 1]
+        collect [
+            repeat index total [
+                keep start + either is-start-smaller [index - 1] [-1 * (index - 1)]
+            ]
+        ]
+    ]
+    
+    R: function [
+        "Returns all natural numbers between and including 1 and including END."
+        end [number!] "The last number in the range."
+        return: [block!]
+    ] [
+        either end > 1 [
+            1 .. end
+        ] [
+            []
+        ]
+    ]
+    
+    chunk: function [
+        "Returns a block of blocks, in groups of SIZE."
+        iterable [block! string!] "The iterable to parse over."
+        size [integer!] "The size of each block."
+        return: [block!]
+    ] [
+        assert [size > 0] "SIZE cannot be less than 1."
+        collect [
+            items: []
+            forall iterable [
+                append items iterable/1
+                is-last-item: (length? iterable) = 1
+                is-items-full: (length? items) >= size
+                if is-last-item or is-items-full [
+                    keep/only copy items clear items
+                ]
+                if is-last-item [break]
+            ]
+        ]
+    ]
+    
+    max-of-series: function [
+        "Returns the largest in a series, assuming the first item's datatype! is the same as the rest of the items."
+        series [block!]
+        return: [block!]
+    ] [
+        type-assumption: type? series/1
+        all-comparable-items: series ~ type-assumption
+        largest-item: none
+        foreach item all-comparable-items [
+            if any [none? largest-item item > largest-item] [
+                largest-item: item
+            ]
+        ]
+        largest-item
+    ]
+
+    install: does [
+        foreach word words-of self [
+            set (in system/words word) (select self word)
+        ]
+    ]
+
+    generate-reference: does [
+        help-file-path: %reference.md
+        
+        delete help-file-path
+        write/append help-file-path rejoin ["## List of Functions" newline]
+        foreach word words-of crimson [
+            write/append help-file-path rejoin ["### " word newline "```" newline]
+            write/append help-file-path rejoin [help-string (to word! word) "```" newline]
         ]
     ]
 ]
 
-max-of-series: function [
-    "Returns the largest in a series, assuming the first item's datatype! is the same as the rest of the items."
-    series [block!]
-    return: [block!]
-] [
-    type-assumption: type? series/1
-    all-comparable-items: series ~ type-assumption
-    largest-item: none
-    foreach item all-comparable-items [
-        if any [none? largest-item item > largest-item] [
-            largest-item: item
-        ]
-    ]
-    largest-item
-]
+; Bind all words to the global context
+crimson/install
+
+; Generate reference documentation
+crimson/generate-reference
 
 ;
 ; Keep-occurrences tests
