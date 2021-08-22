@@ -7,7 +7,76 @@ Red [
     }
     File: %crimson.red
     Tabs: 4
-    Version: 0.0.1
+    Version: 0.0.2
+]
+
+keep-occurrences: function [
+    "Base function for keep-occurrences behavior."
+    iterable [block! string!] "The iterable to parse over."
+    item [typeset! datatype! string!] "The item to find in the iterable."
+    return: [block!]
+] [
+    parse iterable [collect [some [to item keep item to item]]]
+]
+
+~: make op! function [
+    "Returns all occurrences of ITEM in ITERABLE."
+    iterable [block! string!] "The iterable to parse over."
+    item [typeset! datatype! string!] "The item to find in the iterable."
+    return: [block!]
+] [
+    keep-occurrences iterable item
+]
+
+assert: function [
+    "Throws an exception if a condition is false."
+    :test-condition [any-type!] "The conditional in question."
+    message [string!] "The message to display when throwing the exception."
+] [
+    if not do :test-condition [
+        both-sides: test-condition ~ any-type!
+        print compose ["Expected:" both-sides]
+        print compose ["Actual:" (first both-sides)]
+        do make error! message
+    ]
+]
+
+zip: function [
+    "Base function for zipping behavior."
+    first-block [block!] "The first block to zip."
+    second-block [block!] "The second block to zip."
+    /flat "Flattens items when present. NOTE: This will not compose nicely."
+    return: [block!]
+] [
+    collect [
+        operation-mode: either flat [
+            [keep]
+        ] [
+            [keep/only]
+        ]
+
+        forall first-block [
+            do compose [(operation-mode) append to block! first-block/1 pick second-block index? first-block]
+        ]
+    ]
+]
+
+Z: make op! function [
+    "Returns a series of blocks with items corresponding with both iterables."
+    first-block [block!] "The first block to zip."
+    second-block [block!] "The second block to zip."
+    return: [block!]
+] [
+    zip first-block second-block
+]
+
+Z!: make op! function [
+    "Returns a flattened block with items corresponding with both iterables. NOTE: This will not compose nicely like Z does."
+    first-block [block!] "The first block to zip."
+    second-block [block!] "The second block to zip."
+    return: [block!]
+] [
+    zip/flat first-block second-block
 ]
 
 flatten: function [
@@ -31,32 +100,6 @@ flatten: function [
                 insert tail flattened-series value
             ]
             flattened-series
-        ]
-    ]
-]
-
-Z: make op! function [
-    "Returns a series of blocks with items corresponding with both iterables."
-    first-block [block!] "The first block to zip."
-    second-block [block!] "The second block to zip."
-    return: [block!]
-] [
-    collect [
-        forall first-block [
-            keep/only append to block! first-block/1 pick second-block index? first-block
-        ]
-    ]
-]
-
-Z!: make op! function [
-    "Returns a flattened block with items corresponding with both iterables. NOTE: This will not compose nicely like Z does."
-    first-block [block!] "The first block to zip."
-    second-block [block!] "The second block to zip."
-    return: [block!]
-] [
-    collect [
-        forall first-block [
-            keep append to block! first-block/1 pick second-block index? first-block
         ]
     ]
 ]
@@ -85,7 +128,24 @@ R: function [
     either end > 1 [
         1 .. end
     ] [
-        copy []
+        []
+    ]
+]
+
+chunk: function [
+    "Returns a block of blocks, in groups of SIZE."
+    iterable [block! string!] "The iterable to parse over."
+    size [integer!] "The size of each block."
+    return: [block!]
+] [
+    assert [size > 0] "SIZE cannot be less than 1."
+    collect [
+        items: []
+        forall iterable [
+            append items iterable/1
+            if (length? iterable) = 1 [keep/only copy items clear items break] 
+            if (length? items) >= size [keep/only copy items clear items]
+        ]
     ]
 ]
 
@@ -95,7 +155,7 @@ max-of-series: function [
     return: [block!]
 ] [
     type-assumption: type? series/1
-    all-comparable-items: parse series [collect [some [keep type-assumption to type-assumption]]]
+    all-comparable-items: series ~ type-assumption
     largest-item: none
     foreach item all-comparable-items [
         if none? largest-item [largest-item: item]
@@ -104,24 +164,13 @@ max-of-series: function [
     largest-item
 ]
 
-assert: function [
-    "Throws an exception if a condition is false."
-    :test-condition [any-type!] "The conditional in question."
-    message [string!] "The message to display when throwing the exception."
-] [
-    if not do :test-condition [
-        both-sides: parse test-condition [collect [some [keep series! skip keep any-type!]]]
-        print compose ["Expected:" (last both-sides)]
-        print compose ["Actual:" (first both-sides)]
-        do make error! message
-    ]
-]
-
 ;
-; Flatten tests
+; Keep-occurrences tests
 ;
-assert [(flatten (R 5) Z (6 .. 10)) = [1 6 2 7 3 8 4 9 5 10]] "Flatten did not return the correct result."
-assert [(flatten/deep [-1 0 [1 2 [3 4 5 [6]]]]) = [-1 0 1 2 3 4 5 6]] "Flatten/deep did not return the correct result."
+assert [((R 10) ~ number!) = [1 2 3 4 5 6 7 8 9 10]] "Keep-occurrences did not return the correct result."
+assert [([none 1 "a" 2 "b" 3 "c"] ~ number!) = [1 2 3]] "Keep-occurrences did not return the correct result."
+assert [([none 1 "a" 2 "b" 3 "c"] ~ string!) = ["a" "b" "c"]] "Keep-occurrences did not return the correct result."
+assert [("this is a test" ~ "t") = [#"t" #"t" #"t"]] "Keep-occurrences did not return the correct result."
 
 ;
 ; Zip tests
@@ -129,6 +178,12 @@ assert [(flatten/deep [-1 0 [1 2 [3 4 5 [6]]]]) = [-1 0 1 2 3 4 5 6]] "Flatten/d
 assert [(R 5) Z (6 .. 10) = [[1 6] [2 7] [3 8] [4 9] [5 10]]] "Zip (Z) did not return correct the result."
 assert [(R 5) Z (6 .. 10) Z (11 .. 15) = [[1 6 11] [2 7 12] [3 8 13] [4 9 14] [5 10 15]]] "Zip (Z) does not compose properly."
 assert [(R 5) Z! (6 .. 10) = [1 6 2 7 3 8 4 9 5 10]] "Flattening zip (Z!) did not return correct the result."
+
+;
+; Flatten tests
+;
+assert [(flatten (R 5) Z (6 .. 10)) = [1 6 2 7 3 8 4 9 5 10]] "Flatten did not return the correct result."
+assert [(flatten/deep [-1 0 [1 2 [3 4 5 [6]]]]) = [-1 0 1 2 3 4 5 6]] "Flatten/deep did not return the correct result."
 
 ;
 ; Range tests
@@ -141,6 +196,12 @@ assert [(-5 .. 5) = [-5 -4 -3 -2 -1 0 1 2 3 4 5]] "Small Neg to Large Pos did no
 assert [(5 .. -5) = [5 4 3 2 1 0 -1 -2 -3 -4 -5]] "Large Pos to Small Neg did not return the correct result."
 assert [(R 10) = [1 2 3 4 5 6 7 8 9 10]] "Unspecified Large Pos did not return the correct result."
 assert [(0 .. 0) = []] "Same Ends did not return the correct result."
+
+;
+; Chunk tests
+;
+assert [(chunk (R 10) 2) = [[1 2] [3 4] [5 6] [7 8] [9 10]]] "Chunk did not return the correct result."
+assert [(chunk (R 9) 2) = [[1 2] [3 4] [5 6] [7 8] [9]]] "Chunk did not return the correct result."
 
 ;
 ; Max-of-series
