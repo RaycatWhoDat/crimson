@@ -7,7 +7,7 @@ Red [
     }
     File: %crimson.red
     Tabs: 4
-    Version: 0.0.5
+    Version: 0.0.6
 ]
 
 crimson: context [
@@ -71,7 +71,7 @@ crimson: context [
     ]
     
     Z!: make op! function [
-        "Returns a flattened block with items corresponding with both iterables. NOTE: This will not compose nicely like Z does."
+        "Returns a flattened block with items corresponding with both iterables."
         first-block [block!] "The first block to zip."
         second-block [block!] "The second block to zip."
         return: [block!]
@@ -171,7 +171,7 @@ crimson: context [
 
     internal: context [
         is-crimson-installed: false
-        excluded-words: [internal]
+        excluded-words: [internal keep-occurrences zip]
 
         install: does [
             foreach word words-of crimson [
@@ -179,6 +179,7 @@ crimson: context [
                 set (in system/words word) (select crimson word)
             ]
             is-crimson-installed: true
+            print "Crimson is installed."
         ]
         
         generate-reference: does [
@@ -191,6 +192,7 @@ crimson: context [
                 write/append help-file-path rejoin ["### " word newline "```" newline]
                 write/append help-file-path rejoin [help-string (to word! word) "```" newline]
             ]
+            print rejoin ["Regenerated " help-file-path "."]
         ]
 
         run-tests: does [
@@ -245,10 +247,10 @@ crimson: context [
 ]
 
 ; Bind all words to the global context
-crimson/internal/install
+; crimson/internal/install
 
 ; Generate reference documentation
-crimson/internal/generate-reference
+; crimson/internal/generate-reference
 
 ; Run all tests
-crimson/internal/run-tests
+; crimson/internal/run-tests

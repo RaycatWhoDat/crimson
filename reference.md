@@ -1,20 +1,4 @@
 ## List of Functions
-### keep-occurrences
-```
-USAGE:
-     KEEP-OCCURRENCES iterable item
-
-DESCRIPTION: 
-     Base function for keep-occurrences behavior. 
-     KEEP-OCCURRENCES is a function! value.
-
-ARGUMENTS:
-     iterable     [block! string!] "The iterable to parse over."
-     item         [block! typeset! datatype! string!] "The item to find in the iterable."
-
-RETURNS:
-     [block!]
-```
 ### ~
 ```
 USAGE:
@@ -44,25 +28,6 @@ ARGUMENTS:
      :test-condition [any-type!] "The conditional in question."
      message      [block! string!] {The message to display when throwing the exception.}
 ```
-### zip
-```
-USAGE:
-     ZIP first-block second-block
-
-DESCRIPTION: 
-     Base function for zipping behavior. 
-     ZIP is a function! value.
-
-ARGUMENTS:
-     first-block  [block!] "The first block to zip."
-     second-block [block!] "The second block to zip."
-
-REFINEMENTS:
-     /flat        => Flattens items when present. NOTE: This will not compose nicely.
-
-RETURNS:
-     [block!]
-```
 ### Z
 ```
 USAGE:
@@ -85,7 +50,7 @@ USAGE:
      first-block Z! second-block
 
 DESCRIPTION: 
-     Returns a flattened block with items corresponding with both iterables. NOTE: This will not compose nicely like Z does. 
+     Returns a flattened block with items corresponding with both iterables. 
      Z! is an op! value.
 
 ARGUMENTS:
