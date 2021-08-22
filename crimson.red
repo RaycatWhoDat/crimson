@@ -7,22 +7,25 @@ Red [
     }
     File: %crimson.red
     Tabs: 4
-    Version: 0.0.2
+    Version: 0.0.3
 ]
 
 keep-occurrences: function [
     "Base function for keep-occurrences behavior."
     iterable [block! string!] "The iterable to parse over."
-    item [typeset! datatype! string!] "The item to find in the iterable."
+    item [block! typeset! datatype! string!] "The item to find in the iterable."
     return: [block!]
 ] [
+    if (string? iterable) and not (string? item) [
+        do make error! "KEEP-OCCURRENCES can only accept string! when parsing over string!"
+    ]
     parse iterable [collect [some [to item keep item to item]]]
 ]
 
 ~: make op! function [
     "Returns all occurrences of ITEM in ITERABLE."
     iterable [block! string!] "The iterable to parse over."
-    item [typeset! datatype! string!] "The item to find in the iterable."
+    item [block! typeset! datatype! string!] "The item to find in the iterable."
     return: [block!]
 ] [
     keep-occurrences iterable item
@@ -143,8 +146,12 @@ chunk: function [
         items: []
         forall iterable [
             append items iterable/1
-            if (length? iterable) = 1 [keep/only copy items clear items break] 
-            if (length? items) >= size [keep/only copy items clear items]
+            is-last-item: (length? iterable) = 1
+            is-items-full: (length? items) >= size
+            if is-last-item or is-items-full [
+                keep/only copy items clear items
+            ]
+            if is-last-item [break]
         ]
     ]
 ]
@@ -158,8 +165,9 @@ max-of-series: function [
     all-comparable-items: series ~ type-assumption
     largest-item: none
     foreach item all-comparable-items [
-        if none? largest-item [largest-item: item]
-        if item > largest-item [largest-item: item]
+        if any [none? largest-item item > largest-item] [
+            largest-item: item
+        ]
     ]
     largest-item
 ]
