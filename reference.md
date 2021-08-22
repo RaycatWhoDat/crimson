@@ -42,7 +42,7 @@ DESCRIPTION:
 
 ARGUMENTS:
      :test-condition [any-type!] "The conditional in question."
-     message      [string!] {The message to display when throwing the exception.}
+     message      [block! string!] {The message to display when throwing the exception.}
 ```
 ### zip
 ```
@@ -174,20 +174,4 @@ ARGUMENTS:
 
 RETURNS:
      [block!]
-```
-### install
-```
-USAGE:
-     INSTALL 
-
-DESCRIPTION: 
-     INSTALL is a function! value.
-```
-### generate-reference
-```
-USAGE:
-     GENERATE-REFERENCE 
-
-DESCRIPTION: 
-     GENERATE-REFERENCE is a function! value.
 ```

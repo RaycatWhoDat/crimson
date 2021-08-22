@@ -7,7 +7,7 @@ Red [
     }
     File: %crimson.red
     Tabs: 4
-    Version: 0.0.4
+    Version: 0.0.5
 ]
 
 crimson: context [
@@ -35,13 +35,13 @@ crimson: context [
     assert: function [
         "Throws an exception if a condition is false."
         :test-condition [any-type!] "The conditional in question."
-        message [string!] "The message to display when throwing the exception."
+        message [block! string!] "The message to display when throwing the exception."
     ] [
         if not do :test-condition [
             both-sides: test-condition ~ any-type!
             print compose ["Expected:" both-sides]
             print compose ["Actual:" (first both-sides)]
-            do make error! message
+            do make error! either block? message [rejoin message] [message]
         ]
     ]
     
@@ -145,7 +145,7 @@ crimson: context [
                 append items iterable/1
                 is-last-item: (length? iterable) = 1
                 is-items-full: (length? items) >= size
-                if is-last-item or is-items-full [
+                if any [is-last-item is-items-full] [
                     keep/only copy items clear items
                 ]
                 if is-last-item [break]
@@ -169,72 +169,86 @@ crimson: context [
         largest-item
     ]
 
-    install: does [
-        foreach word words-of self [
-            set (in system/words word) (select self word)
-        ]
-    ]
+    internal: context [
+        is-crimson-installed: false
+        excluded-words: [internal]
 
-    generate-reference: does [
-        help-file-path: %reference.md
+        install: does [
+            foreach word words-of crimson [
+                unless none? find internal/excluded-words word [continue]
+                set (in system/words word) (select crimson word)
+            ]
+            is-crimson-installed: true
+        ]
         
-        delete help-file-path
-        write/append help-file-path rejoin ["## List of Functions" newline]
-        foreach word words-of crimson [
-            write/append help-file-path rejoin ["### " word newline "```" newline]
-            write/append help-file-path rejoin [help-string (to word! word) "```" newline]
+        generate-reference: does [
+            help-file-path: %reference.md
+
+            delete help-file-path
+            write/append help-file-path rejoin ["## List of Functions" newline]
+            foreach word words-of crimson [
+                unless none? find excluded-words word [continue]
+                write/append help-file-path rejoin ["### " word newline "```" newline]
+                write/append help-file-path rejoin [help-string (to word! word) "```" newline]
+            ]
+        ]
+
+        run-tests: does [
+            unless is-crimson-installed [
+                do make! error "Running Crimson's tests requires Crimson to be ^"installed^" into the global context."
+            ]
+
+            ; Keep-occurrences tests
+            ; ======================
+            assert [((R 10) ~ number!) = [1 2 3 4 5 6 7 8 9 10]] [
+                "Keep-occurrences did not return the correct result."
+            ]
+            
+            assert [([none 1 "a" 2 "b" 3 "c"] ~ number!) = [1 2 3]] "Keep-occurrences did not return the correct result."
+            assert [([none 1 "a" 2 "b" 3 "c"] ~ string!) = ["a" "b" "c"]] "Keep-occurrences did not return the correct result."
+            assert [("this is a test" ~ "t") = [#"t" #"t" #"t"]] "Keep-occurrences did not return the correct result."
+            
+            ; Zip tests
+            ; =========
+            assert [(R 5) Z (6 .. 10) = [[1 6] [2 7] [3 8] [4 9] [5 10]]] "Zip (Z) did not return correct the result."
+            assert [(R 5) Z (6 .. 10) Z (11 .. 15) = [[1 6 11] [2 7 12] [3 8 13] [4 9 14] [5 10 15]]] "Zip (Z) does not compose properly."
+            assert [(R 5) Z! (6 .. 10) = [1 6 2 7 3 8 4 9 5 10]] "Flattening zip (Z!) did not return correct the result."
+            
+            ; Flatten tests
+            ; =============
+            assert [(flatten (R 5) Z (6 .. 10)) = [1 6 2 7 3 8 4 9 5 10]] "Flatten did not return the correct result."
+            assert [(flatten/deep [-1 0 [1 2 [3 4 5 [6]]]]) = [-1 0 1 2 3 4 5 6]] "Flatten/deep did not return the correct result."
+            
+            ; Range tests
+            ; ===========
+            assert [(1 .. 10) = [1 2 3 4 5 6 7 8 9 10]] "Small Pos to Large Pos did not return the correct result."
+            assert [(10 .. 1) = [10 9 8 7 6 5 4 3 2 1]] "Large Pos to Small Pos did not return the correct result."
+            assert [(-10 .. -1) = [-10 -9 -8 -7 -6 -5 -4 -3 -2 -1]] "Small Neg to Large Neg did not return the correct result."
+            assert [(-1 .. -10) = [-1 -2 -3 -4 -5 -6 -7 -8 -9 -10]] "Large Neg to Small Neg did not return the correct result."
+            assert [(-5 .. 5) = [-5 -4 -3 -2 -1 0 1 2 3 4 5]] "Small Neg to Large Pos did not return the correct result."
+            assert [(5 .. -5) = [5 4 3 2 1 0 -1 -2 -3 -4 -5]] "Large Pos to Small Neg did not return the correct result."
+            assert [(R 10) = [1 2 3 4 5 6 7 8 9 10]] "Unspecified Large Pos did not return the correct result."
+            assert [(0 .. 0) = []] "Same Ends did not return the correct result."
+            
+            ; Chunk tests
+            ; ===========
+            assert [(chunk (R 10) 2) = [[1 2] [3 4] [5 6] [7 8] [9 10]]] "Chunk did not return the correct result."
+            assert [(chunk (R 9) 2) = [[1 2] [3 4] [5 6] [7 8] [9]]] "Chunk did not return the correct result."
+            
+            ; Max-of-series
+            ; =============
+            assert [(max-of-series (-10 .. -1)) = -1] "Max-of-series did not return the correct result."
+            assert [(max-of-series (-10 .. 10)) = 10] "Max-of-series did not return the correct result."
+            assert [(max-of-series [-32 "e" 1 "a" 42]) = 42] "Max-of-series did not return the correct result."
         ]
     ]
 ]
 
 ; Bind all words to the global context
-crimson/install
+crimson/internal/install
 
 ; Generate reference documentation
-crimson/generate-reference
+crimson/internal/generate-reference
 
-;
-; Keep-occurrences tests
-;
-assert [((R 10) ~ number!) = [1 2 3 4 5 6 7 8 9 10]] "Keep-occurrences did not return the correct result."
-assert [([none 1 "a" 2 "b" 3 "c"] ~ number!) = [1 2 3]] "Keep-occurrences did not return the correct result."
-assert [([none 1 "a" 2 "b" 3 "c"] ~ string!) = ["a" "b" "c"]] "Keep-occurrences did not return the correct result."
-assert [("this is a test" ~ "t") = [#"t" #"t" #"t"]] "Keep-occurrences did not return the correct result."
-
-;
-; Zip tests
-;
-assert [(R 5) Z (6 .. 10) = [[1 6] [2 7] [3 8] [4 9] [5 10]]] "Zip (Z) did not return correct the result."
-assert [(R 5) Z (6 .. 10) Z (11 .. 15) = [[1 6 11] [2 7 12] [3 8 13] [4 9 14] [5 10 15]]] "Zip (Z) does not compose properly."
-assert [(R 5) Z! (6 .. 10) = [1 6 2 7 3 8 4 9 5 10]] "Flattening zip (Z!) did not return correct the result."
-
-;
-; Flatten tests
-;
-assert [(flatten (R 5) Z (6 .. 10)) = [1 6 2 7 3 8 4 9 5 10]] "Flatten did not return the correct result."
-assert [(flatten/deep [-1 0 [1 2 [3 4 5 [6]]]]) = [-1 0 1 2 3 4 5 6]] "Flatten/deep did not return the correct result."
-
-;
-; Range tests
-;
-assert [(1 .. 10) = [1 2 3 4 5 6 7 8 9 10]] "Small Pos to Large Pos did not return the correct result."
-assert [(10 .. 1) = [10 9 8 7 6 5 4 3 2 1]] "Large Pos to Small Pos did not return the correct result."
-assert [(-10 .. -1) = [-10 -9 -8 -7 -6 -5 -4 -3 -2 -1]] "Small Neg to Large Neg did not return the correct result."
-assert [(-1 .. -10) = [-1 -2 -3 -4 -5 -6 -7 -8 -9 -10]] "Large Neg to Small Neg did not return the correct result."
-assert [(-5 .. 5) = [-5 -4 -3 -2 -1 0 1 2 3 4 5]] "Small Neg to Large Pos did not return the correct result."
-assert [(5 .. -5) = [5 4 3 2 1 0 -1 -2 -3 -4 -5]] "Large Pos to Small Neg did not return the correct result."
-assert [(R 10) = [1 2 3 4 5 6 7 8 9 10]] "Unspecified Large Pos did not return the correct result."
-assert [(0 .. 0) = []] "Same Ends did not return the correct result."
-
-;
-; Chunk tests
-;
-assert [(chunk (R 10) 2) = [[1 2] [3 4] [5 6] [7 8] [9 10]]] "Chunk did not return the correct result."
-assert [(chunk (R 9) 2) = [[1 2] [3 4] [5 6] [7 8] [9]]] "Chunk did not return the correct result."
-
-;
-; Max-of-series
-;
-assert [(max-of-series (-10 .. -1)) = -1] "Max-of-series did not return the correct result."
-assert [(max-of-series (-10 .. 10)) = 10] "Max-of-series did not return the correct result."
-assert [(max-of-series [-32 "e" 1 "a" 42]) = 42] "Max-of-series did not return the correct result."
+; Run all tests
+crimson/internal/run-tests
