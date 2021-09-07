@@ -70,7 +70,7 @@ USAGE:
      first-block Z! second-block
 
 DESCRIPTION: 
-     Returns a flattened block with items corresponding with both iterables. 
+     Returns a flattened block with items corresponding with both iterables. NOTE: This will not compose nicely if you don't use it as the last zipping operation. 
      Z! is an op! value.
 
 ARGUMENTS:

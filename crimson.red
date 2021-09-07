@@ -77,10 +77,7 @@ crimson: context [
         "Base function for zipping behavior."
         first-block [block!] "The first block to zip."
         second-block [block!] "The second block to zip."
-        /flat {
-        Flattens items when present.
-        NOTE: This will not compose nicely if you don't use it as the last zipping operation.
-        }
+        /flat "Flattens items when present."
         return: [block!]
     ] [
         items: collect [
@@ -101,7 +98,7 @@ crimson: context [
     ]
     
     Z!: make op! function [
-        "Returns a flattened block with items corresponding with both iterables."
+        "Returns a flattened block with items corresponding with both iterables. NOTE: This will not compose nicely if you don't use it as the last zipping operation."
         first-block [block!] "The first block to zip."
         second-block [block!] "The second block to zip."
         return: [block!]
