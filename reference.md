@@ -1,12 +1,14 @@
+> Crimson v0.0.7
+
 ## List of Functions
-### ~
+### only
 ```
 USAGE:
-     iterable ~ item
+     iterable only item
 
 DESCRIPTION: 
      Returns all occurrences of ITEM in ITERABLE. 
-     ~ is an op! value.
+     ONLY is an op! value.
 
 ARGUMENTS:
      iterable     [block! string!] "The iterable to parse over."
@@ -27,6 +29,24 @@ DESCRIPTION:
 ARGUMENTS:
      :test-condition [any-type!] "The conditional in question."
      message      [block! string!] {The message to display when throwing the exception.}
+```
+### flatten
+```
+USAGE:
+     FLATTEN series
+
+DESCRIPTION: 
+     Returns a flattened block of items. 
+     FLATTEN is a function! value.
+
+ARGUMENTS:
+     series       [block!] "The block of items to flatten."
+
+REFINEMENTS:
+     /deep        => Flattens each nested block when present.
+
+RETURNS:
+     [block!]
 ```
 ### Z
 ```
@@ -56,24 +76,6 @@ DESCRIPTION:
 ARGUMENTS:
      first-block  [block!] "The first block to zip."
      second-block [block!] "The second block to zip."
-
-RETURNS:
-     [block!]
-```
-### flatten
-```
-USAGE:
-     FLATTEN series
-
-DESCRIPTION: 
-     Returns a flattened block of items. 
-     FLATTEN is a function! value.
-
-ARGUMENTS:
-     series       [block!] "The block of items to flatten."
-
-REFINEMENTS:
-     /deep        => Flattens each nested block when present.
 
 RETURNS:
      [block!]
@@ -136,6 +138,21 @@ DESCRIPTION:
 
 ARGUMENTS:
      series       [block!] 
+
+RETURNS:
+     [block!]
+```
+### explode
+```
+USAGE:
+     EXPLODE item
+
+DESCRIPTION: 
+     Given ANY-STRING!, returns a BLOCK! of CHAR!. 
+     EXPLODE is a function! value.
+
+ARGUMENTS:
+     item         [string!] 
 
 RETURNS:
      [block!]

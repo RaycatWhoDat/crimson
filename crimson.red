@@ -1,13 +1,13 @@
 Red [
     Title: "Crimson"
     Author: "RaycatWhoDat"
-    Description: {
-        Crimson is a collection of functions and operators that
-        I found myself wanting as I made test projects with Red.
-    }
     File: %crimson.red
     Tabs: 4
-    Version: 0.0.6
+    Version: 0.0.7
+    Description: {
+        Crimson is a collection of functions and operators
+        I found myself wanting as I made test projects with Red.
+    }
 ]
 
 crimson: context [
@@ -17,13 +17,16 @@ crimson: context [
         item [block! typeset! datatype! string!] "The item to find in the iterable."
         return: [block!]
     ] [
-        if (string? iterable) and not (string? item) [
-            do make error! "KEEP-OCCURRENCES can only accept string! when parsing over string!"
+        if all [
+            string? iterable
+            not string? item
+        ] [
+            do make error! "KEEP-OCCURRENCES can only accept any-string! when parsing over any-string!"
         ]
-        parse iterable [collect [some [to item keep item to item]]]
+        parse iterable [collect [some [to item keep item]]]
     ]
     
-    ~: make op! function [
+    only: make op! function [
         "Returns all occurrences of ITEM in ITERABLE."
         iterable [block! string!] "The iterable to parse over."
         item [block! typeset! datatype! string!] "The item to find in the iterable."
@@ -38,47 +41,13 @@ crimson: context [
         message [block! string!] "The message to display when throwing the exception."
     ] [
         if not do :test-condition [
-            both-sides: test-condition ~ any-type!
+            both-sides: test-condition only any-type!
             print compose ["Expected:" both-sides]
             print compose ["Actual:" (first both-sides)]
             do make error! either block? message [rejoin message] [message]
         ]
     ]
-    
-    zip: function [
-        "Base function for zipping behavior."
-        first-block [block!] "The first block to zip."
-        second-block [block!] "The second block to zip."
-        /flat "Flattens items when present. NOTE: This will not compose nicely."
-        return: [block!]
-    ] [
-        collect [
-            operation-mode: either flat [[keep]] [[keep/only]]
-            
-            forall first-block [
-                do compose [(operation-mode) append to block! first-block/1 pick second-block index? first-block]
-            ]
-        ]
-    ]
-    
-    Z: make op! function [
-        "Returns a series of blocks with items corresponding with both iterables."
-        first-block [block!] "The first block to zip."
-        second-block [block!] "The second block to zip."
-        return: [block!]
-    ] [
-        zip first-block second-block
-    ]
-    
-    Z!: make op! function [
-        "Returns a flattened block with items corresponding with both iterables."
-        first-block [block!] "The first block to zip."
-        second-block [block!] "The second block to zip."
-        return: [block!]
-    ] [
-        zip/flat first-block second-block
-    ]
-    
+        
     flatten: function [
         "Returns a flattened block of items."
         series [block!] "The block of items to flatten."
@@ -104,6 +73,42 @@ crimson: context [
         ]
     ]
     
+    zip: function [
+        "Base function for zipping behavior."
+        first-block [block!] "The first block to zip."
+        second-block [block!] "The second block to zip."
+        /flat {
+        Flattens items when present.
+        NOTE: This will not compose nicely if you don't use it as the last zipping operation.
+        }
+        return: [block!]
+    ] [
+        items: collect [
+            forall first-block [
+                keep/only append to block! first-block/1 pick second-block index? first-block
+            ]
+        ]
+        either flat [flatten items] [items]
+    ]
+    
+    Z: make op! function [
+        "Returns a series of blocks with items corresponding with both iterables."
+        first-block [block!] "The first block to zip."
+        second-block [block!] "The second block to zip."
+        return: [block!]
+    ] [
+        zip first-block second-block
+    ]
+    
+    Z!: make op! function [
+        "Returns a flattened block with items corresponding with both iterables."
+        first-block [block!] "The first block to zip."
+        second-block [block!] "The second block to zip."
+        return: [block!]
+    ] [
+        zip/flat first-block second-block
+    ]
+
     ..: make op! function [
         "Returns all natural numbers between and including START and END."
         start [integer! float!] "The first number in the range."
@@ -159,7 +164,7 @@ crimson: context [
         return: [block!]
     ] [
         type-assumption: type? series/1
-        all-comparable-items: series ~ type-assumption
+        all-comparable-items: series only type-assumption
         largest-item: none
         foreach item all-comparable-items [
             if any [none? largest-item item > largest-item] [
@@ -169,6 +174,15 @@ crimson: context [
         largest-item
     ]
 
+    ; Aliases
+    explode: function [
+        "Given ANY-STRING!, returns a BLOCK! of CHAR!."
+        item [string!]
+        return: [block!]
+    ] [
+        extract/into item 1 copy []
+    ]
+    
     internal: context [
         is-crimson-installed: false
         excluded-words: [internal keep-occurrences zip]
@@ -186,6 +200,9 @@ crimson: context [
             help-file-path: %reference.md
 
             delete help-file-path
+            ; Workaround until you can properly parse a Red header
+            library-header: pick load %crimson.red 2
+            write/append help-file-path rejoin ["> Crimson v" library-header/version newline newline]
             write/append help-file-path rejoin ["## List of Functions" newline]
             foreach word words-of crimson [
                 unless none? find excluded-words word [continue]
@@ -202,25 +219,33 @@ crimson: context [
 
             ; Keep-occurrences tests
             ; ======================
-            assert [((R 10) ~ number!) = [1 2 3 4 5 6 7 8 9 10]] [
+            assert [((R 10) only number!) = [1 2 3 4 5 6 7 8 9 10]] [
                 "Keep-occurrences did not return the correct result."
             ]
             
-            assert [([none 1 "a" 2 "b" 3 "c"] ~ number!) = [1 2 3]] "Keep-occurrences did not return the correct result."
-            assert [([none 1 "a" 2 "b" 3 "c"] ~ string!) = ["a" "b" "c"]] "Keep-occurrences did not return the correct result."
-            assert [("this is a test" ~ "t") = [#"t" #"t" #"t"]] "Keep-occurrences did not return the correct result."
+            assert [([none 1 "a" 2 "b" 3 "c"] only number!) = [1 2 3]] [
+                "Keep-occurrences did not return the correct result."
+            ]
+            
+            assert [([none 1 "a" 2 "b" 3 "c"] only string!) = ["a" "b" "c"]] [
+                "Keep-occurrences did not return the correct result."
+            ]
+            
+            assert [("this is a test" only "t") = [#"t" #"t" #"t"]] [
+                "Keep-occurrences did not return the correct result."
+            ]
+                  
+            ; Flatten tests
+            ; =============
+            assert [(flatten (R 5) Z (6 .. 10)) = [1 6 2 7 3 8 4 9 5 10]] "Flatten did not return the correct result."
+            assert [(flatten/deep [-1 0 [1 2 [3 4 5 [6]]]]) = [-1 0 1 2 3 4 5 6]] "Flatten/deep did not return the correct result."
             
             ; Zip tests
             ; =========
             assert [(R 5) Z (6 .. 10) = [[1 6] [2 7] [3 8] [4 9] [5 10]]] "Zip (Z) did not return correct the result."
             assert [(R 5) Z (6 .. 10) Z (11 .. 15) = [[1 6 11] [2 7 12] [3 8 13] [4 9 14] [5 10 15]]] "Zip (Z) does not compose properly."
             assert [(R 5) Z! (6 .. 10) = [1 6 2 7 3 8 4 9 5 10]] "Flattening zip (Z!) did not return correct the result."
-            
-            ; Flatten tests
-            ; =============
-            assert [(flatten (R 5) Z (6 .. 10)) = [1 6 2 7 3 8 4 9 5 10]] "Flatten did not return the correct result."
-            assert [(flatten/deep [-1 0 [1 2 [3 4 5 [6]]]]) = [-1 0 1 2 3 4 5 6]] "Flatten/deep did not return the correct result."
-            
+
             ; Range tests
             ; ===========
             assert [(1 .. 10) = [1 2 3 4 5 6 7 8 9 10]] "Small Pos to Large Pos did not return the correct result."
