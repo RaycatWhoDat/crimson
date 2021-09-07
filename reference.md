@@ -1,6 +1,6 @@
-> Crimson v0.0.7
+# Crimson v0.0.7
 
-## List of Functions
+## API Reference
 ### only
 ```
 USAGE:

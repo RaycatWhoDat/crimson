@@ -199,8 +199,8 @@ crimson: context [
             delete help-file-path
             ; Workaround until you can properly parse a Red header
             library-header: pick load %crimson.red 2
-            write/append help-file-path rejoin ["> Crimson v" library-header/version newline newline]
-            write/append help-file-path rejoin ["## List of Functions" newline]
+            write/append help-file-path rejoin ["# Crimson v" library-header/version newline newline]
+            write/append help-file-path rejoin ["## API Reference" newline]
             foreach word words-of crimson [
                 unless none? find excluded-words word [continue]
                 write/append help-file-path rejoin ["### " word newline "```" newline]
