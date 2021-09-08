@@ -1,4 +1,4 @@
-# Crimson v0.0.8
+# Crimson v0.0.9
 
 ## API Reference
 ### only
@@ -137,7 +137,7 @@ DESCRIPTION:
      MAX-OF-SERIES is a function! value.
 
 ARGUMENTS:
-     series       [block!] 
+     series       [block!] "The series to check."
 
 RETURNS:
      [block!]
@@ -152,11 +152,15 @@ DESCRIPTION:
      WEAVE is a function! value.
 
 ARGUMENTS:
-     series       [block!] 
-     item         [any-type!] 
+     series       [block!] "The series to weave."
+     item         [any-type!] "The item to insert."
+
+RETURNS:
+     [block!]
 ```
 ### explode
 ```
+Looks like we have a bad type spec: [block! [char!]]
 USAGE:
      EXPLODE item
 
@@ -165,8 +169,39 @@ DESCRIPTION:
      EXPLODE is a function! value.
 
 ARGUMENTS:
-     item         [string!] 
+     item         [string!] "The string to explode."
 
 RETURNS:
-     [block!]
+     [block! [char!]]
+```
+### char-to-integer
+```
+USAGE:
+     CHAR-TO-INTEGER character
+
+DESCRIPTION: 
+     Given a CHAR!, this will return a INTEGER! of the value, not the code point. 
+     CHAR-TO-INTEGER is a function! value.
+
+ARGUMENTS:
+     character    [char!] "The character to convert."
+
+RETURNS:
+     [integer!]
+```
+### format
+```
+USAGE:
+     FORMAT format-string items
+
+DESCRIPTION: 
+     Given a string with special identifiers, replace the string with the items provided in the block. 
+     FORMAT is a function! value.
+
+ARGUMENTS:
+     format-string [string!] 
+     items        [block!] 
+
+RETURNS:
+     [string!]
 ```

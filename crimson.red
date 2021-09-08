@@ -3,7 +3,7 @@ Red [
     Author: "RaycatWhoDat"
     File: %crimson.red
     Tabs: 4
-    Version: 0.0.8
+    Version: 0.0.9
     Description: {
         Crimson is a collection of functions and operators
         I found myself wanting as I made test projects with Red.
@@ -40,7 +40,7 @@ crimson: context [
         :test-condition [any-type!] "The conditional in question."
         message [block! string!] "The message to display when throwing the exception."
     ] [
-        if not do :test-condition [
+        unless do :test-condition [
             both-sides: test-condition only any-type!
             print compose ["Expected:" both-sides]
             print compose ["Actual:" (first both-sides)]
@@ -157,7 +157,7 @@ crimson: context [
     
     max-of-series: function [
         "Returns the largest in a series, assuming the first item's datatype! is the same as the rest of the items."
-        series [block!]
+        series [block!] "The series to check."
         return: [block!]
     ] [
         type-assumption: type? series/1
@@ -173,21 +173,58 @@ crimson: context [
 
     weave: function [
         "Given a BLOCK! and ANY-TYPE!, returns a BLOCK! with ANY-TYPE! in-between each word."
-        series [block!]
-        item [any-type!]
+        series [block!] "The series to weave."
+        item [any-type!] "The item to insert."
+        return: [block!]
     ] [
         collect [forall series [keep series/1 keep/only item]]
     ]
-    
-    ; Aliases
+
     explode: function [
         "Given ANY-STRING!, returns a BLOCK! of CHAR!."
-        item [string!]
-        return: [block!]
+        item [string!] "The string to explode."
+        return: [block! [char!]] 
     ] [
         extract/into item 1 copy []
     ]
+
+    char-to-integer: function [
+        "Given a CHAR!, this will return a INTEGER! of the value, not the code point."
+        character [char!] "The character to convert."
+        return: [integer!]
+    ] [
+        to-integer to-string character
+    ]
     
+    format: function [
+        "Given a string with special identifiers, replace the string with the items provided in the block."
+        format-string [string!]
+        items [block!]
+        return: [string!]
+    ] [
+        digits: charset [#"1" - #"9"]
+        slot-marker: ["{" digits "}"]
+        slot-marker-rule: [
+            to slot-marker
+            slot-point:
+            (slot-index: char-to-integer slot-point/2)
+            (replace slot-point slot-marker items/:slot-index)
+        ]
+        
+        if empty? items [
+            print "No values provided."
+            exit
+        ]
+        
+        if (length? items) > 9 [
+            print "No more than 9 arguments are supported at this time."
+            exit
+        ]
+
+        parse format-string [some slot-marker-rule]
+        format-string
+    ]
+
     internal: context [
         is-crimson-installed: false
         excluded-words: [internal keep-occurrences zip]
@@ -275,6 +312,12 @@ crimson: context [
 
             ; Weave
             ; =====
+            assert [(weave R 3 1) = [1 1 2 1 3 1]] "Weave did not return the correct result."
+            assert [(weave R 3 "test") = [1 "test" 2 "test" 3 "test"]] "Weave did not return the correct result."
+            assert [(weave R 3 R 3) = [1 [1 2 3] 2 [1 2 3] 3 [1 2 3]]] "Weave did not return the correct result."
+
+            ; Format
+            ; ======
             assert [(weave R 3 1) = [1 1 2 1 3 1]] "Weave did not return the correct result."
             assert [(weave R 3 "test") = [1 "test" 2 "test" 3 "test"]] "Weave did not return the correct result."
             assert [(weave R 3 R 3) = [1 [1 2 3] 2 [1 2 3] 3 [1 2 3]]] "Weave did not return the correct result."
