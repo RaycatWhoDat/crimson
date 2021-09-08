@@ -1,4 +1,4 @@
-# Crimson v0.0.7
+# Crimson v0.0.8
 
 ## API Reference
 ### only
@@ -141,6 +141,19 @@ ARGUMENTS:
 
 RETURNS:
      [block!]
+```
+### weave
+```
+USAGE:
+     WEAVE series item
+
+DESCRIPTION: 
+     Given a BLOCK! and ANY-TYPE!, returns a BLOCK! with ANY-TYPE! in-between each word. 
+     WEAVE is a function! value.
+
+ARGUMENTS:
+     series       [block!] 
+     item         [any-type!] 
 ```
 ### explode
 ```

@@ -3,7 +3,7 @@ Red [
     Author: "RaycatWhoDat"
     File: %crimson.red
     Tabs: 4
-    Version: 0.0.7
+    Version: 0.0.8
     Description: {
         Crimson is a collection of functions and operators
         I found myself wanting as I made test projects with Red.
@@ -171,6 +171,14 @@ crimson: context [
         largest-item
     ]
 
+    weave: function [
+        "Given a BLOCK! and ANY-TYPE!, returns a BLOCK! with ANY-TYPE! in-between each word."
+        series [block!]
+        item [any-type!]
+    ] [
+        collect [forall series [keep series/1 keep/only item]]
+    ]
+    
     ; Aliases
     explode: function [
         "Given ANY-STRING!, returns a BLOCK! of CHAR!."
@@ -264,6 +272,12 @@ crimson: context [
             assert [(max-of-series (-10 .. -1)) = -1] "Max-of-series did not return the correct result."
             assert [(max-of-series (-10 .. 10)) = 10] "Max-of-series did not return the correct result."
             assert [(max-of-series [-32 "e" 1 "a" 42]) = 42] "Max-of-series did not return the correct result."
+
+            ; Weave
+            ; =====
+            assert [(weave R 3 1) = [1 1 2 1 3 1]] "Weave did not return the correct result."
+            assert [(weave R 3 "test") = [1 "test" 2 "test" 3 "test"]] "Weave did not return the correct result."
+            assert [(weave R 3 R 3) = [1 [1 2 3] 2 [1 2 3] 3 [1 2 3]]] "Weave did not return the correct result."
         ]
     ]
 ]
