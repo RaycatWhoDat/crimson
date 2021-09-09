@@ -195,7 +195,7 @@ crimson: context [
     ] [
         to-integer to-string character
     ]
-    
+
     format: function [
         "Given a string with special identifiers, replace the string with the items provided in the block."
         format-string [string!]
@@ -279,48 +279,120 @@ crimson: context [
                   
             ; Flatten tests
             ; =============
-            assert [(flatten (R 5) Z (6 .. 10)) = [1 6 2 7 3 8 4 9 5 10]] "Flatten did not return the correct result."
-            assert [(flatten/deep [-1 0 [1 2 [3 4 5 [6]]]]) = [-1 0 1 2 3 4 5 6]] "Flatten/deep did not return the correct result."
+            assert [(flatten (R 5) Z (6 .. 10)) = [1 6 2 7 3 8 4 9 5 10]] [
+                "Flatten did not return the correct result."
+            ]
+            
+            assert [(flatten/deep [-1 0 [1 2 [3 4 5 [6]]]]) = [-1 0 1 2 3 4 5 6]] [
+                "Flatten/deep did not return the correct result."
+            ]
+            
             
             ; Zip tests
             ; =========
-            assert [(R 5) Z (6 .. 10) = [[1 6] [2 7] [3 8] [4 9] [5 10]]] "Zip (Z) did not return correct the result."
-            assert [(R 5) Z (6 .. 10) Z (11 .. 15) = [[1 6 11] [2 7 12] [3 8 13] [4 9 14] [5 10 15]]] "Zip (Z) does not compose properly."
-            assert [(R 5) Z! (6 .. 10) = [1 6 2 7 3 8 4 9 5 10]] "Flattening zip (Z!) did not return correct the result."
+            assert [(R 5) Z (6 .. 10) = [[1 6] [2 7] [3 8] [4 9] [5 10]]] [
+                "Zip (Z) did not return correct the result."
+            ]
+            
+            assert [(R 5) Z (6 .. 10) Z (11 .. 15) = [[1 6 11] [2 7 12] [3 8 13] [4 9 14] [5 10 15]]] [
+                "Zip (Z) does not compose properly."
+            ]
+            
+            assert [(R 5) Z! (6 .. 10) = [1 6 2 7 3 8 4 9 5 10]] [
+                "Flattening zip (Z!) did not return correct the result."
+            ]
+            
 
             ; Range tests
             ; ===========
-            assert [(1 .. 10) = [1 2 3 4 5 6 7 8 9 10]] "Small Pos to Large Pos did not return the correct result."
-            assert [(10 .. 1) = [10 9 8 7 6 5 4 3 2 1]] "Large Pos to Small Pos did not return the correct result."
-            assert [(-10 .. -1) = [-10 -9 -8 -7 -6 -5 -4 -3 -2 -1]] "Small Neg to Large Neg did not return the correct result."
-            assert [(-1 .. -10) = [-1 -2 -3 -4 -5 -6 -7 -8 -9 -10]] "Large Neg to Small Neg did not return the correct result."
-            assert [(-5 .. 5) = [-5 -4 -3 -2 -1 0 1 2 3 4 5]] "Small Neg to Large Pos did not return the correct result."
-            assert [(5 .. -5) = [5 4 3 2 1 0 -1 -2 -3 -4 -5]] "Large Pos to Small Neg did not return the correct result."
-            assert [(R 10) = [1 2 3 4 5 6 7 8 9 10]] "Unspecified Large Pos did not return the correct result."
-            assert [(0 .. 0) = []] "Same Ends did not return the correct result."
+            assert [(1 .. 10) = [1 2 3 4 5 6 7 8 9 10]] [
+                "Small Pos to Large Pos did not return the correct result."
+            ]
+            
+            assert [(10 .. 1) = [10 9 8 7 6 5 4 3 2 1]] [
+                "Large Pos to Small Pos did not return the correct result."
+            ]
+            
+            assert [(-10 .. -1) = [-10 -9 -8 -7 -6 -5 -4 -3 -2 -1]] [
+                "Small Neg to Large Neg did not return the correct result."
+            ]
+            
+            assert [(-1 .. -10) = [-1 -2 -3 -4 -5 -6 -7 -8 -9 -10]] [
+                "Large Neg to Small Neg did not return the correct result."
+            ]
+            
+            assert [(-5 .. 5) = [-5 -4 -3 -2 -1 0 1 2 3 4 5]] [
+                "Small Neg to Large Pos did not return the correct result."
+            ]
+            
+            assert [(5 .. -5) = [5 4 3 2 1 0 -1 -2 -3 -4 -5]] [
+                "Large Pos to Small Neg did not return the correct result."
+            ]
+            
+            assert [(R 10) = [1 2 3 4 5 6 7 8 9 10]] [
+                "Unspecified Large Pos did not return the correct result."
+            ]
+            
+            assert [(0 .. 0) = []] [
+                "Same Ends did not return the correct result."
+            ]
+            
             
             ; Chunk tests
             ; ===========
-            assert [(chunk (R 10) 2) = [[1 2] [3 4] [5 6] [7 8] [9 10]]] "Chunk did not return the correct result."
-            assert [(chunk (R 9) 2) = [[1 2] [3 4] [5 6] [7 8] [9]]] "Chunk did not return the correct result."
+            assert [(chunk (R 10) 2) = [[1 2] [3 4] [5 6] [7 8] [9 10]]] [
+                "Chunk did not return the correct result."
+            ]
             
-            ; Max-of-series
-            ; =============
-            assert [(max-of-series (-10 .. -1)) = -1] "Max-of-series did not return the correct result."
-            assert [(max-of-series (-10 .. 10)) = 10] "Max-of-series did not return the correct result."
-            assert [(max-of-series [-32 "e" 1 "a" 42]) = 42] "Max-of-series did not return the correct result."
+            assert [(chunk (R 9) 2) = [[1 2] [3 4] [5 6] [7 8] [9]]] [
+                "Chunk did not return the correct result."
+            ]
+            
+            
+            ; Max-of-series tests
+            ; ===================
+            assert [(max-of-series (-10 .. -1)) = -1] [
+                "Max-of-series did not return the correct result."
+            ]
+            
+            assert [(max-of-series (-10 .. 10)) = 10] [
+                "Max-of-series did not return the correct result."
+            ]
+            
+            assert [(max-of-series [-32 "e" 1 "a" 42]) = 42] [
+                "Max-of-series did not return the correct result."
+            ]
+            
 
-            ; Weave
-            ; =====
-            assert [(weave R 3 1) = [1 1 2 1 3 1]] "Weave did not return the correct result."
-            assert [(weave R 3 "test") = [1 "test" 2 "test" 3 "test"]] "Weave did not return the correct result."
-            assert [(weave R 3 R 3) = [1 [1 2 3] 2 [1 2 3] 3 [1 2 3]]] "Weave did not return the correct result."
+            ; Weave tests
+            ; ===========
+            assert [(weave R 3 1) = [1 1 2 1 3 1]] [
+                "Weave did not return the correct result."
+            ]
+            
+            assert [(weave R 3 "test") = [1 "test" 2 "test" 3 "test"]] [
+                "Weave did not return the correct result."
+            ]
+            
+            assert [(weave R 3 R 3) = [1 [1 2 3] 2 [1 2 3] 3 [1 2 3]]] [
+                "Weave did not return the correct result."
+            ]
+            
 
-            ; Format
-            ; ======
-            assert [(weave R 3 1) = [1 1 2 1 3 1]] "Weave did not return the correct result."
-            assert [(weave R 3 "test") = [1 "test" 2 "test" 3 "test"]] "Weave did not return the correct result."
-            assert [(weave R 3 R 3) = [1 [1 2 3] 2 [1 2 3] 3 [1 2 3]]] "Weave did not return the correct result."
+            ; Format tests
+            ; ============
+            assert [(format "This {1}" ["is a test"]) = "This is a test"] [
+                "Format did not return the correct result."
+            ]
+            
+            assert [(format "This is {1} and {1}" ["anotha one"]) = "This is anotha one and anotha one"] [
+                "Format did not return the correct result."
+            ]
+            
+            assert [(format "This {1} {2} {3}" ["is" "a" "test"]) = "This is a test"] [
+                "Format did not return the correct result."
+            ]
+            
         ]
     ]
 ]
