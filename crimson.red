@@ -3,7 +3,7 @@ Red [
     Author: "RaycatWhoDat"
     File: %crimson.red
     Tabs: 4
-    Version: 0.0.9
+    Version: 0.0.10
     Description: {
         Crimson is a collection of functions and operators
         I found myself wanting as I made test projects with Red.
@@ -225,6 +225,58 @@ crimson: context [
         format-string
     ]
 
+    sequence: function [
+        "Given a block of initial values and a step function, return a block of values generated from step-function."
+        initial-values [block!] "The block of initial values."
+        step-function [function!] "The function to generate the next value."
+        /take iterations [integer!] "The number of times step-function should be invoked."
+        /capped logic-block [block!] "A block that is valid in the ALL function. Use `value` to indicate the value generated from step-function."
+        return: [block!]
+    ] [
+        if empty? initial-values [
+            return []
+        ]
+        
+        function-spec: spec-of :step-function
+        remove-each spec-word function-spec [not word? spec-word]
+        step-function-arity: length? function-spec
+        
+        if none? items [
+            items: copy initial-values
+        ]
+        
+        append-next-value: does [
+            next-value: reduce reverse collect [
+                repeat count step-function-arity [
+                    keep (pick reverse copy items count)
+                ]
+                keep :step-function
+            ]
+            append items next-value
+        ]
+        
+        capped-append: does [
+            until [
+                append-next-value
+                conditional: copy logic-block
+                replace/all conditional 'value (last items)
+                do all conditional
+            ]
+        ]
+        
+        limited-append: does [
+            repeat count iterations [append-next-value]
+        ]
+        
+        case [
+            capped [capped-append]
+            take [limited-append]
+            true [append-next-value]
+        ]
+        
+        items
+    ]
+    
     internal: context [
         is-crimson-installed: false
         excluded-words: [internal keep-occurrences zip]
@@ -392,7 +444,21 @@ crimson: context [
             assert [(format "This {1} {2} {3}" ["is" "a" "test"]) = "This is a test"] [
                 "Format did not return the correct result."
             ]
+
+            ; Sequence tests
+            ; ==============
+            fibonacci: function [item1 item2] [item1 + item2]
+            assert [(sequence/capped [0 1] :fibonacci [value > 89]) = [0 1 1 2 3 5 8 13 21 34 55 89 144]] [
+                "Capped sequence did not return the correct result."
+            ]
             
+            assert [(sequence/take [0 1] :fibonacci 7) = [0 1 1 2 3 5 8 13 21]] [
+                "Limited sequence did not return the correct result."
+            ]
+            
+            assert [(sequence [0 1] :fibonacci) = [0 1 1]] [
+                "Uncapped sequence did not return the correct result."
+            ]
         ]
     ]
 ]

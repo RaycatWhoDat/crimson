@@ -205,3 +205,25 @@ ARGUMENTS:
 RETURNS:
      [string!]
 ```
+### sequence
+```
+USAGE:
+     SEQUENCE initial-values step-function
+
+DESCRIPTION: 
+     Given a block of initial values and a step function, return a block of values generated from step-function. 
+     SEQUENCE is a function! value.
+
+ARGUMENTS:
+     initial-values [block!] "The block of initial values."
+     step-function [function!] "The function to generate the next value."
+
+REFINEMENTS:
+     /take        => 
+        iterations   [integer!] {The number of times step-function should be invoked.}
+     /capped      => 
+        logic-block  [block!] {A block that is valid in the ALL function. Use `value` to indicate the value generated from step-function.}
+
+RETURNS:
+     [block!]
+```
